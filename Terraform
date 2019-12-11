@@ -1,0 +1,66 @@
+ git clone https://github.com/jiangytcn/terraform-provider-virtualbox 
+
+    cd terraform-provider-virtualbox 
+
+    go get 
+
+    mkdir -p  ~/github.com/k8s-terraform-vault-easyway 
+
+    mv terraform-provider-virtualbox ~/github.com/k8s-terraform-vault-easyway 
+ 
+
+    resource "virtualbox_vm" "node" { 
+
+        count = 3 
+
+        name = "${format("k8s-terraform-vault-easyway-%02d", count.index+1)}" 
+
+        image = "/Users/jiangytcn/github.com/k8s-terraform-vault-easyway/xenial-server-cloudimg-amd64-vagrant.box" 
+
+        cpus = 2 
+
+        memory = "1024 Mib", 
+
+        network_adapter { 
+
+            type = "hostonly", 
+
+            device = "IntelPro1000MTDesktop", 
+
+            host_interface = "vboxnet1", //hostonlyif 
+
+        } 
+
+        network_adapter { 
+
+            type = "nat", 
+
+            device = "IntelPro1000MTDesktop", 
+
+        } 
+
+        optical_disks = ["/Users/jiangytcn/github.com/k8s-terraform-vault-easyway/configdrive.iso"] 
+
+    } 
+
+    output "master" { 
+
+        value = "${element(virtualbox_vm.node.*.network_adapter.0.ipv4_address, 1)}" 
+
+    } 
+
+    output "slave1" { 
+
+        value = "${element(virtualbox_vm.node.*.network_adapter.0.ipv4_address, 2)}" 
+
+    } 
+
+    output "slave2" { 
+
+        value = "${element(virtualbox_vm.node.*.network_adapter.0.ipv4_address, 3)}" 
+
+    } 
+
+    
+
+    
