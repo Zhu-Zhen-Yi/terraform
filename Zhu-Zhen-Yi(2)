@@ -1,0 +1,126 @@
+
+provider "aws" {
+
+    alias = "xxx"   用于当有多个aws时，可以选定哪个aws执行
+
+    region = "${var.xxxx}"
+
+ 
+
+}
+
+ 
+
+terraform {
+
+  backend "s3"{
+
+     bucket = "xxxxx" s3的一个bucket的路径
+
+     encrypt = true
+
+     key = "后面的路径，xxx/xxx/xxx/terraform.tfstate"
+
+     region = "xxxx"
+
+}
+
+ 
+
+}
+
+ 
+
+module "xxx(命名一个名字，便于下面引用)" {
+
+    source = "要引用的模块的路径，一直到文件夹"
+
+    变量1 = "xxxxx"
+
+    变量2 = "xx"
+
+    
+
+}
+
+ 
+
+resource "已有的" "命名" {
+
+ 
+
+ 
+
+ 
+
+}
+
+ 
+
+ 
+
+如果是module内部的，使用：
+
+output "xxxxx" {
+
+     value = "${xxx.xxxxx.xxxxxx}" module的tf内的resource的结果
+
+}
+
+ 
+
+如果是tf内直接从module内取值，比如取上面的module的output的值，就可以：
+
+output "xxxxx" {
+
+     value = "${module.xxx.xxxxxx}"  分别是module，module的名称，module xxx内的output内的输出的mingchen
+
+}
+
+初始化时指定backend。apply时指定vars
+
+terraform init -backend-config=../../xxxxx/xxx/xxx/backend.conf -input=false
+
+terraform apply -auto-approve -input=false -var-file=../../xxx/xx/xx/terraform.tfvars
+
+resource "xxxxxx" "xxxxxx" {
+
+    name       = "xxxxxxxxxxx"
+
+    count      = "${length(var.xxxxx)}"
+
+    roles      = ["${module.roles.xxxxxx}"]
+
+    policy_arn = "${element(var.xxxxx, count.index)}"
+
+}
+
+ 
+
+ 
+
+在var文件内的代码：
+
+ 
+
+variable "xxxxx" {
+
+     description = "xxxxxxxxxxxxxxxxx"
+
+     type = "list"
+
+     default = [
+
+          "arn:aws:iam::aws:policy/xx",
+
+          "arn:aws:iam::aws:policy/xxx",
+
+          "arn:aws:iam::aws:policy/xxxx",
+
+          "arn:aws:iam::aws:policy/x",
+
+          "arn:aws:iam::aws:policy/xdxdxd"
+
+     ]
+
+}
