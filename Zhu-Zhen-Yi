@@ -1,0 +1,178 @@
+
+// Images data source for image_id
+
+data "alicloud_images" "default" {
+
+  ...
+
+}
+
+// Instance_types data source for instance_type
+
+data "alicloud_instance_types" "default" {
+
+  ...
+
+}
+
+// Zones data source for availability_zone
+
+data "alicloud_zones" "default" {
+
+  ...
+
+}
+
+// A new VPC
+
+resource "alicloud_vpc" "vpc" {
+
+    name = "default"
+
+    ...
+
+}
+
+// Two new VSwitches
+
+resource "alicloud_vswitch" "vswitches" {
+
+  count             = 2
+
+  vpc_id            = "${alicloud_vpc.vpc.id}"
+
+  ...
+
+}
+
+// A new Security Group
+
+resource "alicloud_security_group" "default" {
+
+  vpc_id = "alicloud_vpc.vpc.id}"
+
+  ...
+
+}
+
+// Two Web Tier instances
+
+resource "alicloud_instance" "web" {
+
+  count           = 2
+
+  image_id        = "data.alicloud_images.default.images.0.id"
+
+  instance_type   = "data.alicloud_instance_types.default.instance_types.0.id"
+
+  security_groups = ["${ alicloud_security_group.default.id }"]
+
+  vswitch_id = "${element(alicloud_vswitch.vswitches.*.id, count.index)}"
+
+  ...
+
+}
+
+// Two Application Tier instances
+
+resource "alicloud_instance" "app" {
+
+  count           = 2
+
+  image_id        = "${data.alicloud_images.default.images.0.id}"
+
+  instance_type   = "${data.alicloud_instance_types.default.instance_types.0.id}"
+
+  security_groups = ["${alicloud_security_group.default.id}"]
+
+  vswitch_id = "${element(alicloud_vswitch.vswitches.*.id, count.index)}"
+
+  ...
+
+}
+
+// A SLB Instance for intranet
+
+resource "alicloud_slb" "intranet" {
+
+  internet = false
+
+  vswitch_id = "${alicloud_vswitch.vswitches.0.id}"
+
+  ...
+
+}
+
+// Attach Ecs instances
+
+resource "alicloud_slb_attachment" "intranet" {
+
+  load_balancer_id = "${alicloud_slb.intranet.id}"
+
+  instance_ids     = ["${alicloud_instance.web.*.id}", "${alicloud_instance.app.*.id}"]
+
+}
+
+// SLB Instance Resource for internet
+
+resource "alicloud_slb" "internet" {
+
+  internet  = true
+
+  ...
+
+}
+
+// Attach Ecs instances
+
+resource "alicloud_slb_attachment" "internet" {
+
+  load_balancer_id = "${alicloud_slb.internet.id}"
+
+  instance_ids     = ["${alicloud_instance.web.*.id}"]
+
+}
+
+// Two RDS Instance
+
+resource "alicloud_db_instance" "default" {
+
+  count            = 2
+
+  vswitch_id = "${element(alicloud_vswitch.vswitches.*.id, count.index)}"
+
+  ...
+
+}
+
+// Add a account for each RDS instance
+
+resource "alicloud_db_account" "default" {
+
+  count       = 2
+
+  instance_id = "${element(alicloud_db_instance.default.*.id, count.index)}"
+
+  ...
+
+}
+
+// Add a database for each RDS instance
+
+resource "alicloud_db_database" "default" {
+
+  count       = 2
+
+  instance_id = "${element(alicloud_db_instance.default.*.id, count.index)}"
+
+  ...
+
+}
+
+// A OSS Bucket
+
+resource "alicloud_oss_bucket" "default" {
+
+  ...
+
+}
